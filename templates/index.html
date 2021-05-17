@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<!-- saved from url=(0037)https://nanostatus.live/conf/socket -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Nano Election Visualizer</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <script type="text/javascript" charset="utf-8">
+    var payload = [
+    { 
+      "root" : "4DB5485318F5D4087EC382EA12EEF32827E81493008DF54F17D6F2DC12DACA394DB5485318F5D4087EC382EA12EEF32827E81493008DF54F17D6F2DC12DACA39" , 
+      "hash" : "EXAMPLE_HASH", 
+      "tally" : "58250318281697067259561704265900382264", 
+      "rep_num" : "12", 
+      "status" : "IN_PROGRESS" 
+    },
+    { 
+      "root" : "5DB5485318F5D4087EC382EA12EEF32827E81493008DF54F17D6F2DC12DACA394DB5485318F5D4087EC382EA12EEF32827E81493008DF54F17D6F2DC12DACA39" , 
+      "hash" : "EXAMPLE_HASH", 
+      "tally" : "61250318281697067259561704265900382264", 
+      "rep_num" : "15", 
+      "status" : "SUCCESSFUL" 
+    },
+    
+    { 
+      "root" : "6DB5485318F5D4087EC382EA12EEF32827E81493008DF54F17D6F2DC12DACA394DB5485318F5D4087EC382EA12EEF32827E81493008DF54F17D6F2DC12DACA39" , 
+      "hash" : "EXAMPLE_HASH", 
+      "tally" : "10250318281697067259561704265900382264", 
+      "rep_num" : "0", 
+      "status" : "DROPPED" 
+    }
+    ]
+  </script>
+  <style>
+    .list-item {
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .list-enter-active, .list-leave-active {
+      transition: all 0.5s;
+    }
+    .list-enter, .list-leave-to /* .list-leave-active below version 2.1.8 */ {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    
+    [v-cloak] {
+      display:none
+    }
+
+    h2 {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="container p-5" v-cloak>
+      <h1 class="title is-2 mt-5 px-3">
+        Random Elections in Progress<br>
+        <span class="is-size-7">Last updated {{ ago }} ago</span>
+      </h1>
+      <transition-group name="list" tag="div">
+        <div class="mb-3 card p-3" v-for="(election, index) in currentElections" :key="election.root">
+          <h2 class="title is-6 mb-2 mt-1">Block: 
+            <span class="is-family-monospace ">
+              <a v-if="election.status === 'IN_PROGRESS'" class="has-text-info" target="_blank" :href="'https://nanostatus.live/conf/'+election.root">{{ election.hash }}</a>
+              <a v-if="election.status === 'SUCCESSFUL'"  class="has-text-success" target="_blank" :href="'https://nanostatus.live/conf/'+election.root">{{ election.hash }}</a>
+              <a v-if="election.status === 'DROPPED'"  class="has-text-grey-light" target="_blank" :href="'https://nanostatus.live/conf/'+election.root">{{ election.hash }}</a>
+            </span>
+          </h2>
+          <div class="columns is-mobile is-vcentered is-gapless" style="vertical-align: middle;">
+            <!--<div class="column is-one-fifth">
+              <p>
+                <transition>
+                  <span v-if="election.status === 'IN_PROGRESS'" class="tag is-info">IN PROGRESS</span>
+                  <span v-if="election.status === 'SUCCESSFUL'" class="tag is-success">SUCCESSFUL</span>
+                  <span v-if="election.status === 'DROPPED'" class="tag">DROPPED</span>
+                </transition>
+              </p>
+            </div>-->
+            <div class="column is-one-fifth">
+              <p><span>Reps: </span><span class="has-text-weight-bold">{{ election.rep_num }}</span></p>
+            </div>
+            <div class="column is-one-fifth">
+              <p>Quorum: <span class="has-text-weight-bold">{{ rawToNano(election.tally) / quorumNano * 100 | formatPercent }}</span></p>
+            </div>
+            <div class="column has-text-centered" style="vertical-align: middle;">
+              <div v-if="election.status === 'IN_PROGRESS'" class="px-3">
+                <progress class="progress mt-1 is-small is-info" :value="election.tally | rawToNano" min=0 :max="quorumNano">{{ rawToNano(election.tally) / quorumNano * 100 | formatPercent }}</progress>
+              </div>
+              <div style="margin:auto;">
+                <span v-if="election.status === 'SUCCESSFUL'" class="tag is-success">SUCCESSFUL
+                  <svg v-if="election.status === 'SUCCESSFUL'" class="has-text-success" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </span>
+                <span v-if="election.status === 'DROPPED'" class="tag">DROPPED
+                  <svg v-if="election.status === 'DROPPED'" class="has-text-grey-light  " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition-group>
+
+      <div>
+        <h2 class="title is-3 mt-6">Confirmed Elections</h2>
+        <p class="has-text-centered has-text-grey-light p-10" v-if="confirmedElections.length == 0">Confirmed elections will be persisted here (until page refresh)</p>
+        <transition-group name="list" tag="div">
+          <div class="mb-3 card p-3" v-if="confirmedElections.length > 0" v-for="(election, index) in confirmedElections" :key="election.root">
+            <h2 class="title is-6 mb-2 mt-1">Block: 
+              <span class="is-family-monospace ">
+                <a class="has-text-success" target="_blank" :href="'https://nanostatus.live/conf/'+election.root">{{ election.hash }}</a>
+              </span>
+            </h2>
+            <div class="columns is-mobile is-vcentered is-gapless" style="vertical-align: middle;">
+              <div class="column is-one-fifth">
+                <p><span>Reps: </span><span class="has-text-weight-bold">{{ election.rep_num }}</span></p>
+              </div>
+              <div class="column is-one-fifth">
+                <p>Quorum: <span class="has-text-weight-bold">{{ rawToNano(election.tally) / quorumNano * 100 | formatPercent }}</span></p>
+              </div>
+              <div class="column has-text-centered" style="vertical-align: middle;">
+                <div style="margin:auto;">
+                  <span v-if="election.status === 'SUCCESSFUL'" class="tag is-success">SUCCESSFUL
+                    <svg v-if="election.status === 'SUCCESSFUL'" class="has-text-success" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition-group>
+      </div>
+    </div>
+    <footer class="footer mt-5 mb-4">
+      <div class="content has-text-centered">
+        <p>
+          <strong>Nano Election Visualizer</strong> made with <span style="width:16px;height:16px;vertical-align:middle;"><svg height="16" viewBox="0 0 512 512" width="16" xmlns="http://www.w3.org/2000/svg"><g><g><path d="m246.122 477.289c-144.417-126.367-246.122-193.304-246.122-299.774 0-80.513 57.4-146.515 136-146.515 54.544 0 95.017 33.497 120 81.015 24.981-47.515 65.454-81.015 120-81.015 78.609 0 136 66.015 136 146.515 0 106.457-101.572 173.291-246.122 299.773-5.657 4.949-14.1 4.949-19.756.001z"/></g></g></svg></span> by <a href="https://nanostatus.live/">jaycoxx</a> and <a href="https://www.reddit.com/user/lovinglyhandmade">rek</a> 
+        </p>
+      </div>
+    </footer>
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bignumber.js/9.0.1/bignumber.min.js"></script>
+    <script>
+      
+      // :class="rawToNano(election) > 55000000 ? 'is-success' : 'is-warning'"
+      
+      Vue.filter('rawToNano', function(raw) {
+        var raw = BigNumber(raw);
+        var nano = raw.dividedBy(1e30)
+        
+        return nano.toNumber()
+      })
+      
+      Vue.filter('formatTime', function(isoDate) {
+        var date = +new Date(isoDate)
+        return timeSince(date)
+      })
+      
+      Vue.filter('formatPercent', function(percent) {
+        if (percent === 0) {
+          return 0 + '%'
+        }
+        if (percent < 1000) {
+          return (percent).toFixed(2) + '%'
+        } else {
+          return (percent / 100).toFixed(0) + 'x'
+        }
+      })
+      
+      var app = new Vue({
+        el: '#app',
+        data: {
+          currentElections: payload,
+          confirmedElections : [],
+          quorumNano: 69000000,
+          lastUpdated: +new Date(),
+          ago: '0 seconds',
+        },
+        
+        watch: {
+          binance : function() {
+            createChart()
+          }
+        },
+        
+        created() {
+          setInterval(() => {
+            this.ago = timeSince(this.lastUpdated);
+          }, 1000)
+        }
+      })
+      
+      function rawToNano(raw) {
+        var raw = BigNumber(raw);
+        var nano = raw.dividedBy(1e30)
+        
+        return nano.toNumber()
+      }
+      
+      function commarize() {
+        // Alter numbers larger than 1k
+        if (this >= 1e3) {
+          var units = ["k", "M", "B", "T", "Q"];
+          
+          // Divide to get SI Unit engineering style numbers (1e3,1e6,1e9, etc)
+          let unit = Math.floor(((this).toFixed(0).length - 1) / 3) * 3
+          // Calculate the remainder
+          var num = (this / ('1e' + unit)).toFixed(1)
+          var unitname = units[Math.floor(unit / 3) - 1]
+          
+          // output number remainder + unitname
+          return num + unitname
+        }
+        
+        // smaller than 0.001
+        if (this < 0.001) {
+          return this.toFixed(6)
+        } else if( this < 0.01) {
+          return this.toFixed(4)
+        } else if( this < 0.1) {
+          return this.toFixed(3)
+        } else {
+          return this.toFixed(2)
+        }
+      }
+      
+      // Add method to prototype. this allows you to use this function on numbers and strings directly
+      Number.prototype.commarize = commarize
+      String.prototype.commarize = commarize
+      
+      var socket = io();
+      
+      // Event handler for new connections.
+      // The callback function is invoked when a connection with the
+      // server is established.
+      socket.on('connect', function() {
+        socket.emit('my_event', {data: 'I\'m connected!'});
+      });
+      
+      // Event handler for server sent data.
+      // The callback function is invoked whenever the server emits data
+      // to the client. The data is then displayed in the "Received"
+      // section of the page.
+      socket.on('update', function(msg) {
+        var payload = JSON.parse(msg)
+        for (let i = 0; i < payload.length; i++) {
+          const element = payload[i];
+          if(element.status === 'SUCCESSFUL') {
+            app.confirmedElections.push(element)
+          }
+        }
+        app.currentElections = payload 
+        app.lastUpdated = +new Date()
+      });
+      
+      
+      function timeSince(date) {
+        
+        var seconds = Math.floor((new Date() - date) / 1000);        
+        var interval = seconds / 31536000;
+        
+        if (interval > 1) {
+          return Math.floor(interval) + " years";
+        }
+        interval = seconds / 2592000;
+        if (interval > 1) {
+          return Math.floor(interval) + " months";
+        }
+        interval = seconds / 86400;
+        if (interval > 1) {
+          return Math.floor(interval) + " days";
+        }
+        interval = seconds / 3600;
+        if (interval > 1) {
+          return Math.floor(interval) + " hours";
+        }
+        interval = seconds / 60;
+        if (interval > 1) {
+          return Math.floor(interval) + " minutes";
+        }
+        return Math.floor(seconds) + " seconds";
+      }
+    </script>
+  </body></html>
