@@ -22,7 +22,7 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
-url = 'http://127.0.0.1:7076'
+url = 'https://mynano.ninja/api/node'
 conf_active = {'action' : 'confirmation_active'}
 
 elections_list = []
@@ -35,10 +35,12 @@ rep_cemented = {}
 
 @scheduler.task('interval', id='do_job_1', seconds=5, misfire_grace_time=900)
 def scheduled_task():
+    print('SCHEDULE')
     with scheduler.app.app_context():
         confirmation_quorum_command = {'action' : 'confirmation_quorum', 'peer_details': 'true'}
         x = requests.post(url, json = confirmation_quorum_command)
         confirmation_quorum_result = x.json()
+        print(confirmation_quorum_result)
 
         for peers in confirmation_quorum_result['peers']:
             ip_parts = str(peers['ip']).split(']')
@@ -61,7 +63,8 @@ def scheduled_task():
             if election not in confs:
                 if election in hash_dict:
                     block_info = {'action' : 'block_info', 'json_block': 'true', 'hash': hash_dict[election] }
-                    x = requests.post(url, json = block_info)                    result = x.json()
+                    x = requests.post(url, json = block_info)
+                    result = x.json()
                     print(result)
                     if 'confirmed' in result:
                         confirmed = result['confirmed']
