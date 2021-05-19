@@ -2,6 +2,7 @@ import requests
 import time
 import random
 import json 
+import os
 
 from flask import Flask
 from flask import request, render_template, send_file
@@ -22,7 +23,8 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
-url = 'https://mynano.ninja/api/node'
+url = os.environ.get('RPC_URL', 'http://localhost:7076')
+update_time = int(os.environ.get('UPDATE_TIME', '5'))
 conf_active = {'action' : 'confirmation_active'}
 
 elections_list = []
@@ -33,14 +35,13 @@ peer_ip = {}
 rep_conf = {}
 rep_cemented = {}
 
-@scheduler.task('interval', id='do_job_1', seconds=5, misfire_grace_time=900)
+@scheduler.task('interval', id='do_job_1', seconds=update_time, misfire_grace_time=900)
 def scheduled_task():
-    print('SCHEDULE')
+    print('SCHEDULE: Start')
     with scheduler.app.app_context():
         confirmation_quorum_command = {'action' : 'confirmation_quorum', 'peer_details': 'true'}
         x = requests.post(url, json = confirmation_quorum_command)
         confirmation_quorum_result = x.json()
-        print(confirmation_quorum_result)
 
         for peers in confirmation_quorum_result['peers']:
             ip_parts = str(peers['ip']).split(']')
@@ -104,6 +105,7 @@ def scheduled_task():
         broadcast_json = json.dumps(broadcast_data)
 #        print(broadcast_json)
 #        socketio.emit('update',{'data' : 'test'} , broadcast=True)
+        print('SCHEDULE: Done')
         socketio.emit('update', broadcast_json , broadcast=True)
 
 @socketio.on('connect')
@@ -111,9 +113,9 @@ def test_connect():
     print('connected')
     socketio.emit('my response', {'data': 'Connected'})
 
-@app.route('/conf/socket')
+@app.route('/')
 def start_page():
-    return send_file('/home/data_web/conf_website/templates/index.html')
+    return send_file('./templates/index.html')
 
 @app.route('/conf/random')
 def start():
@@ -252,4 +254,4 @@ def conf_info(root):
 
 
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, host='0.0.0.0')

@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- saved from url=(0037)https://nanostatus.live/conf/socket -->
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title>Nano Election Visualizer</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
@@ -65,9 +64,9 @@
         <div class="mb-3 card p-3" v-for="(election, index) in currentElections" :key="election.root">
           <h2 class="title is-6 mb-2 mt-1">Block: 
             <span class="is-family-monospace ">
-              <a v-if="election.status === 'IN_PROGRESS'" class="has-text-info" target="_blank" :href="'https://nanostatus.live/conf/'+election.root">{{ election.hash }}</a>
-              <a v-if="election.status === 'SUCCESSFUL'"  class="has-text-success" target="_blank" :href="'https://nanostatus.live/conf/'+election.root">{{ election.hash }}</a>
-              <a v-if="election.status === 'DROPPED'"  class="has-text-grey-light" target="_blank" :href="'https://nanostatus.live/conf/'+election.root">{{ election.hash }}</a>
+              <a v-if="election.status === 'IN_PROGRESS'" class="has-text-info" target="_blank" :href="'/conf/'+election.root">{{ election.hash }}</a>
+              <a v-if="election.status === 'SUCCESSFUL'"  class="has-text-success" target="_blank" :href="'/conf/'+election.root">{{ election.hash }}</a>
+              <a v-if="election.status === 'DROPPED'"  class="has-text-grey-light" target="_blank" :href="'/conf/'+election.root">{{ election.hash }}</a>
             </span>
           </h2>
           <div class="columns is-mobile is-vcentered is-gapless" style="vertical-align: middle;">
@@ -90,18 +89,6 @@
               <div v-if="election.status === 'IN_PROGRESS'" class="px-3">
                 <progress class="progress mt-1 is-small is-info" :value="election.tally | rawToNano" min=0 :max="quorumNano">{{ rawToNano(election.tally) / quorumNano * 100 | formatPercent }}</progress>
               </div>
-              <div style="margin:auto;">
-                <span v-if="election.status === 'SUCCESSFUL'" class="tag is-success">SUCCESSFUL
-                  <svg v-if="election.status === 'SUCCESSFUL'" class="has-text-success" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </span>
-                <span v-if="election.status === 'DROPPED'" class="tag">DROPPED
-                  <svg v-if="election.status === 'DROPPED'" class="has-text-grey-light  " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </span>
-              </div>
             </div>
           </div>
         </div>
@@ -114,7 +101,7 @@
           <div class="mb-3 card p-3" v-if="confirmedElections.length > 0" v-for="(election, index) in confirmedElections" :key="election.root">
             <h2 class="title is-6 mb-2 mt-1">Block: 
               <span class="is-family-monospace ">
-                <a class="has-text-success" target="_blank" :href="'https://nanostatus.live/conf/'+election.root">{{ election.hash }}</a>
+                <a class="has-text-success" target="_blank" :href="'/'+election.root">{{ election.hash }}</a>
               </span>
             </h2>
             <div class="columns is-mobile is-vcentered is-gapless" style="vertical-align: middle;">
