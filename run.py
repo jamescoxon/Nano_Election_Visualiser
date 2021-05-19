@@ -33,6 +33,18 @@ peer_ip = {}
 rep_conf = {}
 rep_cemented = {}
 
+# read file
+with open('aliases.json', 'r') as myfile:
+    data=myfile.read()
+
+# parse file
+rep_json = json.loads(data)
+rep_dict = {}
+for rep in rep_json:
+    print(rep)
+    account = rep['account']
+    rep_dict[account] = rep['alias']
+
 @scheduler.task('interval', id='do_job_1', seconds=5, misfire_grace_time=900)
 def scheduled_task():
     with scheduler.app.app_context():
@@ -61,7 +73,8 @@ def scheduled_task():
             if election not in confs:
                 if election in hash_dict:
                     block_info = {'action' : 'block_info', 'json_block': 'true', 'hash': hash_dict[election] }
-                    x = requests.post(url, json = block_info)                    result = x.json()
+                    x = requests.post(url, json = block_info)
+                    result = x.json()
                     print(result)
                     if 'confirmed' in result:
                         confirmed = result['confirmed']
@@ -124,6 +137,25 @@ def start():
     random_conf = random.randrange(total_confs)
     return '<html><h1>Conf Monitor</h1><br>Here is a random election to monitor:<br><a href="https://nanostatus.live/conf/{}">{}</a></html>'.format(confs[random_conf], confs[random_conf])
 
+
+@app.route('/conf/all')
+def all_elections():
+    x = requests.post(url, json = conf_active)
+    result = x.json()
+    confs = result['confirmations']
+    total_confs = int(result['unconfirmed'])
+    all =[]
+    for root in confs:
+        conf_command = {'action' : 'confirmation_info', 'json_block': 'true', 'root': root ,'representatives': 'true'}
+        x = requests.post(url, json = conf_command)
+        result = x.json()
+        if 'total_tally' in result:
+            total_tally = result['total_tally']
+            last_winner = result['last_winner']
+
+            all.append('{} {}<br>'.format(last_winner, total_tally))
+    return str(all)
+
 @app.route('/conf/random/json')
 def start_json():
 
@@ -179,58 +211,10 @@ def conf_info(root):
     account = result['blocks'][last_winner]['contents']['account']
 
     for reps in representatives:
-#        print(reps)
-        if reps == 'nano_37imps4zk1dfahkqweqa91xpysacb7scqxf3jqhktepeofcxqnpx531b3mnt':
-            name = 'Kraken'
-        elif reps == 'nano_1b9wguhh39at8qtm93oghd6r4f4ubk7zmqc9oi5ape6yyz4s1gamuwn3jjit':
-            name = '465i'
-        elif reps == 'nano_1iuz18n4g4wfp9gf7p1s8qkygxw7wx9qfjq6a9aq68uyrdnningdcjontgar':
-            name = 'NanoTicker'
-        elif reps == 'nano_3jwrszth46rk1mu7rmb4rhm54us8yg1gw3ipodftqtikf5yqdyr7471nsg1k':
-            name = 'Binance'
-        elif reps == 'nano_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4':
-            name = 'NF 1'
-        elif reps == 'nano_1natrium1o3z5519ifou7xii8crpxpk8y65qmkih8e8bpsjri651oza8imdd':
-            name = 'Natrium'
-        elif reps == 'nano_1awsn43we17c1oshdru4azeqjz9wii41dy8npubm4rg11so7dx3jtqgoeahy':
-            name = 'NF 6'
-        elif reps == 'nano_1stofnrxuz3cai7ze75o174bpm7scwj9jn3nxsn8ntzg784jf1gzn1jjdkou':
-            name = 'NF 2'
-        elif reps == 'nano_1anrzcuwe64rwxzcco8dkhpyxpi8kd7zsjc1oeimpc3ppca4mrjtwnqposrs':
-            name = 'NF 7'
-        elif reps == 'nano_1hza3f7wiiqa7ig3jczyxj5yo86yegcmqk3criaz838j91sxcckpfhbhhra1':
-            name = 'NF 8'
-        elif reps == 'nano_3dmtrrws3pocycmbqwawk6xs7446qxa36fcncush4s1pejk16ksbmakis78m':
-            name = 'NF 4'
-        elif reps == 'nano_3pczxuorp48td8645bs3m6c3xotxd3idskrenmi65rbrga5zmkemzhwkaznh':
-            name = 'NanoWallet'
-        elif reps == 'nano_3rw4un6ys57hrb39sy1qx8qy5wukst1iiponztrz9qiz6qqa55kxzx4491or':
-            name = 'NanoVault'
-        elif reps == 'nano_1center16ci77qw5w69ww8sy4i4bfmgfhr81ydzpurm91cauj11jn6y3uc5y':
-            name = 'Nanocenter'
-        elif reps == 'nano_1x7biz69cem95oo7gxkrw6kzhfywq4x5dupw4z1bdzkb74dk9kpxwzjbdhhs':
-            name = 'Nanocrawler'
-        elif reps == 'nano_3om9m65hb6c3xaqkhqpok48wq4dgxidnxt8fihknbsb8pf997iu6dx6x6mfu':
-            name = 'Voxpopuli'
-        elif reps == 'nano_1kd4h9nqaxengni43xy9775gcag8ptw8ddjifnm77qes1efuoqikoqy5sjq3':
-            name = 'NanoQuake'
-        elif reps == 'nano_16d45ow3tsj1y3z9n4satwzxgj6qiue1ggxbwbrj3b33qr58bzchkpsffpx4':
-            name = '1NANO Community'
-        elif reps == 'nano_1ninja7rh37ehfp9utkor5ixmxyg8kme8fnzc4zty145ibch8kf5jwpnzr3r':
-            name = 'My Nano Ninja'
-        elif reps == 'nano_3chartsi6ja8ay1qq9xg3xegqnbg1qx76nouw6jedyb8wx3r4wu94rxap7hg':
-            name = 'Nano Charts'
-        elif reps == 'nano_3pczxuorp48td8645bs3m6c3xotxd3idskrenmi65rbrga5zmkemzhwkaznh':
-            name = 'NanoWallet.io'
-        elif reps == 'nano_1natrium1o3z5519ifou7xii8crpxpk8y65qmkih8e8bpsjri651oza8imdd':
-            name = 'Natrium'
-        elif reps == 'nano_1wenanoqm7xbypou7x3nue1isaeddamjdnc3z99tekjbfezdbq8fmb659o7t':
-            name = 'WeNano'
-        elif reps == 'nano_3uaydiszyup5zwdt93dahp7mri1cwa5ncg9t4657yyn3o4i1pe8sfjbimbas':
-            name = 'Nano.Voting'
-        elif reps == 'nano_34zuxqdsucurhjrmpc4aixzbgaa4wjzz6bn5ryn56emc9tmd3pnxjoxfzyb6':
-            name = 'Nano Germany'
-        else:
+
+        try:
+            name = rep_dict[reps]
+        except:
             name = 'None'
 
         try:
