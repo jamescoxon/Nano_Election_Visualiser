@@ -12,7 +12,7 @@ from flask_apscheduler import APScheduler
 
 import logging
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+log.setLevel(logging.DEBUG)
 async_mode = None
 
 app = Flask(__name__)
