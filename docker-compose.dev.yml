@@ -1,8 +1,10 @@
 services:
   web:
-    image: bitdesert/nanoelectionvisualizer
+    build: .
     ports: 
       - 5000:5000
+    volumes: 
+      - .:/usr/src/app
     environment: 
       - RPC_URL=http://1.2.3.4:7076
       - UPDATE_TIME=5
